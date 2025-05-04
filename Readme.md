@@ -9,7 +9,7 @@
 This project demonstrates a secure flow of generating RSA keys, encrypting numeric values on the frontend using a public key, and submitting them to the backend for validation and storage using Redis. The main goal is to ensure uniqueness of encrypted values without decrypting them, until a final decryption step after a certain number of submissions.
 ```
 ## 📁 Folder Structure
-.
+
 ├── Backend/       # Node.js backend with Redis integration
 ├── Frontend/      # Client-side logic (HTML + JS)
 ├── index.html     # Entry point for the frontend
