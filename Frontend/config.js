@@ -1,3 +1,3 @@
 const CONFIG = {
-  BASE_URL: "http://localhost:6900",
+  BASE_URL: "https://uuid-encrypted-sorter.onrender.com",
 };
