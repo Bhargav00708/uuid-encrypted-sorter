@@ -59,7 +59,7 @@ async function getSortedValue(req, res) {
       return parseFloat(decrypted);
     });
 
-    decryptedNumbers.sort((a, b) => b - a); // Descending sort
+    decryptedNumbers.sort((a, b) => b - a);
   } catch (err) {
     console.error("Decryption error:", err);
     return res.status(500).json({ message: "Error during decryption." });
