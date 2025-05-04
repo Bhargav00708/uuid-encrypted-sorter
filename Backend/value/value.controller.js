@@ -1,7 +1,8 @@
 const redisClient = require("../config/redisClient.configuration");
-const crypto = require("crypto");
+const forge = require("node-forge");
+
 async function submitValue(req, res) {
-  const { uuid, encryptedValue } = req.body;
+  const { uuid, encryptedValue, hashedValue } = req.body;
 
   if (!uuid || !encryptedValue) {
     return res
@@ -12,11 +13,8 @@ async function submitValue(req, res) {
   const allKey = `values:${uuid}:all`;
   const uniqueKey = `values:${uuid}:unique`;
 
-  // Always push to 'all' list
-  await redisClient.rPush(allKey, encryptedValue);
-
-  // Check if already exists in unique set
-  const isMember = await redisClient.sIsMember(uniqueKey, encryptedValue);
+  const isMember = await redisClient.sIsMember(allKey, hashedValue);
+  await redisClient.sAdd(allKey, hashedValue);
 
   let isUnique = false;
   if (!isMember) {
@@ -33,7 +31,8 @@ async function getSortedValue(req, res) {
   const { uuid } = req.params;
 
   const privateKeyPem = await redisClient.get(`keys:${uuid}:private`);
-  if (!privateKeyPem) {
+  const privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
+  if (!privateKey) {
     return res
       .status(404)
       .json({ message: "Private key not found or expired" });
@@ -47,15 +46,9 @@ async function getSortedValue(req, res) {
   let decryptedNumbers = [];
 
   try {
-    const privateKey = crypto.createPrivateKey({
-      key: privateKeyPem,
-      format: "pem",
-      type: "pkcs1",
-    });
-
     decryptedNumbers = encryptedValues.map((enc) => {
-      const buffer = Buffer.from(enc, "base64");
-      const decrypted = crypto.privateDecrypt(privateKey, buffer).toString();
+      const encryptedBytes = forge.util.decode64(enc);
+      const decrypted = privateKey.decrypt(encryptedBytes, "RSAES-PKCS1-V1_5");
       return parseFloat(decrypted);
     });
 

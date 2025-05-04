@@ -1,13 +1,13 @@
-const crypto = require('crypto');
+const forge = require("node-forge");
 
 function generateRSAKeyPair() {
-  const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
-    modulusLength: 2048,
-  });
+  const keypair = forge.pki.rsa.generateKeyPair({ bits: 2048 });
+  const publicKeyPem = forge.pki.publicKeyToPem(keypair.publicKey);
+  const privateKeyPem = forge.pki.privateKeyToPem(keypair.privateKey);
 
   return {
-    publicKey: publicKey.export({ type: 'pkcs1', format: 'pem' }),
-    privateKey: privateKey.export({ type: 'pkcs1', format: 'pem' }),
+    publicKey: publicKeyPem,
+    privateKey: privateKeyPem,
   };
 }
 

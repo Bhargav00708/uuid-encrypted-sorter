@@ -36,13 +36,24 @@ document.getElementById("submitBtn").addEventListener("click", async () => {
 
   try {
     const publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
-    const encrypted = publicKey.encrypt(num.toString(), "RSA-OAEP");
+    const numBuffer = forge.util.createBuffer(num.toString(), "utf-8");
+    const encrypted = publicKey.encrypt(
+      numBuffer.getBytes(),
+      "RSAES-PKCS1-V1_5"
+    );
     const encryptedBase64 = forge.util.encode64(encrypted);
+
+    const md = forge.md.sha256.create();  // You can also use sha512
+    md.update(num.toString(), "utf8");
 
     const res = await fetch(`${baseUrl}/values/submit-value`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ uuid, encryptedValue: encryptedBase64 }),
+      body: JSON.stringify({
+        uuid,
+        encryptedValue: encryptedBase64,
+        hashedValue: md.digest().toHex()
+      }),
     });
 
     const data = await res.json();
